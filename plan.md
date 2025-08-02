@@ -91,18 +91,18 @@ Build a minimal, dark-themed web app to view and compare Claude Code version pro
 - [x] Add character-level highlighting
 - [x] Use mock data for user testing
 
-### Phase 3: Data Loading
+### Phase 3: Update Service
+- [x] Create Node.js Docker service
+- [x] Implement update script, which itself periodially calls  npx @mariozechner/cchistory 1.0.0 --latest, no cron job or anything, just a simple nodejs script
+- [x] Add error handling and logging, log to /data/logs.txt so user can view logs in browser
+- [x] Configure shared volume
+
+### Phase 4: Data Loading
 - [ ] Implement versions.json fetching
 - [ ] Add error.json checking
 - [ ] Implement prompt file fetching
 - [ ] Add URL state management
 - [ ] Handle loading states
-
-### Phase 4: Update Service
-- [ ] Create Node.js Docker service
-- [ ] Implement update script, which itself periodially calls  npx @mariozechner/cchistory 1.0.0 --latest, no cron job or anything, just a simple nodejs script
-- [ ] Add error handling and logging, log to /data/logs.txt so user can view logs in browser
-- [ ] Configure shared volume
 
 ### Phase 5: Infrastructure
 - [ ] Update docker-compose.yml for new service

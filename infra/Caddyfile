@@ -1,6 +1,13 @@
 :80 {
 	root * /srv
-	
+
+	# Enable compression for all responses
+	encode {
+		zstd
+		gzip
+		minimum_length 256
+	}
+
 	# Live reload WebSocket proxy (development only)
 	# Must come before file_server
 	@websocket {
@@ -11,10 +18,16 @@
 	handle @websocket {
 		reverse_proxy livereload:35729
 	}
-	
+
 	# Also handle regular HTTP requests to /livereload
 	handle /livereload {
 		reverse_proxy livereload:35729
+	}
+
+	# Serve data files (versions.json, error.json, logs.txt, prompts-*.md)
+	handle /data/* {
+		root * /
+		file_server
 	}
 	
 	# Handle everything else with SPA routing

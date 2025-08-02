@@ -1,6 +1,19 @@
 # cchistory-site
 
-Static site with TypeScript, Tailwind 4, live reload, and Docker deployment.
+Web app to view and compare Claude Code version prompts with side-by-side diff visualization. Features automatic updates, dark theme, and responsive design.
+
+## Requirements
+
+### API Key Setup
+
+The update service requires an Anthropic API key to fetch Claude Code prompts:
+
+```bash
+# Set your API key before running dev or deploy
+export CCHISTORY_ANTHROPIC_API_KEY="sk-ant-api03-..."
+
+# The key will be automatically passed to the update service
+```
 
 ## Workflow
 
@@ -8,7 +21,7 @@ Static site with TypeScript, Tailwind 4, live reload, and Docker deployment.
 
 ```bash
 # Start dev environment (Docker + live reload)
-./run.sh dev
+CCHISTORY_ANTHROPIC_API_KEY="your-key" ./run.sh dev
 
 # Your app is now running at http://localhost:8080
 # Edit files in src/ and see changes instantly
@@ -26,33 +39,53 @@ PORT=8081 ./run.sh dev  # Runs independently with its own dist/
 
 ```bash
 # Deploy to your server (builds automatically)
-./run.sh deploy
+CCHISTORY_ANTHROPIC_API_KEY="your-key" ./run.sh deploy
 ```
 
 The deploy command:
-1. Builds TypeScript and CSS locally
-2. Syncs files to your server via rsync
-3. Restarts services with Docker Compose
-4. Caddy automatically handles SSL and routing
+1. Generates .env file with API key
+2. Builds TypeScript and CSS locally
+3. Syncs files to your server via rsync
+4. Restarts services with Docker Compose
+5. Caddy automatically handles SSL and routing
 
 ## Project Structure
 
 ```
 cchistory-site/
-├── src/             # Source files
-│   ├── index.html   # Main HTML
-│   ├── index.ts     # TypeScript (includes live reload)
-│   └── styles.css   # Tailwind CSS
-├── dist/            # Build output (git ignored)
-├── infra/           # Infrastructure
-│   ├── build.js     # Build script
-│   ├── Caddyfile    # Caddy web server configuration
-│   ├── docker-compose.yml      # Base configuration
-│   ├── docker-compose.dev.yml  # Development overrides
-│   └── docker-compose.prod.yml # Production overrides
-├── run.sh           # All-in-one CLI
-└── package.json     # Dependencies
+├── src/                    # Source files
+│   └── frontend/           # Frontend app
+│       ├── index.html      # Main HTML
+│       ├── index.ts        # Lit component with Monaco diff editor
+│       └── styles.css      # Tailwind CSS
+├── dist/                   # Build output (git ignored)
+├── data/                   # Local data directory (git ignored)
+├── infra/                  # Infrastructure
+│   ├── build.js            # Build script
+│   ├── generate-env.js     # Environment variable generator
+│   ├── updater.js          # Update service that fetches prompts
+│   ├── Caddyfile           # Caddy web server configuration
+│   ├── docker-compose.yml       # Base configuration
+│   ├── docker-compose.dev.yml   # Development overrides
+│   └── docker-compose.prod.yml  # Production overrides
+├── run.sh                  # All-in-one CLI
+├── build.json              # Build configuration
+└── package.json            # Dependencies
 ```
+
+## Services
+
+### Web Service (Caddy)
+- Serves the frontend app with compression (zstd, gzip)
+- Proxies `/data/*` to serve prompt files and metadata
+- Handles live reload in development
+
+### Update Service (Node.js)
+- Runs every 30 minutes
+- Fetches all Claude Code prompts from 1.0.0 to latest via [cchistory](https://github.com/badlogic/cchistory)
+- Generates `versions.json` metadata
+- Logs to `/data/logs.txt`
+- Handles errors gracefully with `error.json`
 
 ## Commands
 
@@ -70,17 +103,20 @@ Deploys to `/home/badlogic/cchistory.mariozechner.at/` on `slayer.marioslab.io`.
 
 ## Tech Stack
 
-- **TypeScript** with tsup bundler
-- **Tailwind 4** with automatic compilation
-- **Caddy** web server with automatic HTTPS
-- **Live reload** via WebSocket proxy (no separate port)
-- **Docker** for dev/prod parity
-- **Caddy** reverse proxy with automatic SSL
+- **Frontend**: Lit Elements, Monaco Editor (VS Code's diff editor), TypeScript
+- **Styling**: Tailwind CSS v4 with dark theme
+- **Build**: tsup bundler, automatic env generation
+- **Backend**: Node.js update service using @mariozechner/cchistory
+- **Web Server**: Caddy with automatic HTTPS and compression
+- **Infrastructure**: Docker Compose for dev/prod parity
+- **Live Reload**: WebSocket proxy through Caddy
 
 ## Architecture Notes
 
+- Monaco Editor provides VS Code-quality diff visualization
+- Responsive design: side-by-side diffs on desktop, unified on mobile
 - All traffic goes through Caddy (port 80), including WebSocket connections
-- Live reload WebSocket is proxied at `/livereload` endpoint
+- Update service persists Claude Code auth and npm packages across restarts
+- Version data served as static files for optimal performance
 - Multiple instances can run simultaneously with different PORT values
-- Each instance gets its own Docker containers (project-name includes port)
 - Git worktrees recommended for parallel feature development

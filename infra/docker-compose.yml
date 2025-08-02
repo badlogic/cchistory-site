@@ -6,3 +6,21 @@ services:
     volumes:
       - ../dist:/srv:ro
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - cchistory-data:/data:ro
+
+  updater:
+    image: node:24-slim
+    restart: unless-stopped
+    command: node /app/updater.js
+    volumes:
+      - ./updater.js:/app/updater.js:ro
+      - cchistory-data:/data
+      - claude-home:/root
+    environment:
+      - DATA_DIR=/data
+      - UPDATE_INTERVAL=1800000
+      - ANTHROPIC_API_KEY=${CCHISTORY_ANTHROPIC_API_KEY:-}
+
+volumes:
+  cchistory-data:
+  claude-home:

@@ -3,6 +3,19 @@ services:
   web:
     ports:
       - "${PORT:-8080}:80"
+    volumes:
+      - ../dist:/srv:ro
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../data:/data:ro
+
+  updater:
+    image: node:24-slim
+    volumes:
+      - ./updater.js:/app/updater.js:ro
+      - ../data:/data
+    environment:
+      - UPDATE_INTERVAL=1800000  # 30 minutes
+      - ANTHROPIC_API_KEY=${CCHISTORY_ANTHROPIC_API_KEY}
 
   livereload:
     image: node:alpine

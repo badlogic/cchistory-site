@@ -24,6 +24,7 @@ sync_files() {
       --include="dist/***" \
       --include="infra/***" \
       --include="run.sh" \
+      --include=".env" \
       --exclude="*" \
       --delete \
       ./ $SERVER:$SERVER_DIR/$DOMAIN/
