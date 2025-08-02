@@ -1,0 +1,12 @@
+# Production overrides
+services:
+  web:
+    labels:
+      caddy: cchistory.mariozechner.at
+      caddy.reverse_proxy: "{{upstreams 80}}"
+    networks:
+      - caddy-network
+
+networks:
+  caddy-network:
+    external: true
