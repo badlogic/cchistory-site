@@ -7,9 +7,10 @@ export default defineConfig({
   clean: false,
   minify: true,
   sourcemap: true,
+  noExternal: ['monaco-editor'],
   outExtension() {
     return {
-      js: '.js', // This makes it output index.js instead of index.global.js
+      js: '.js',
     }
   },
 })

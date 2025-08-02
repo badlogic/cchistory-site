@@ -1,1 +1,12 @@
 @import "tailwindcss";
+@import "monaco-editor/min/vs/editor/editor.main.css";
+
+/* Ensure full black background */
+html,
+body {
+   margin: 0;
+   padding: 0;
+   background-color: #000;
+   overflow: hidden;
+   height: 100%;
+}

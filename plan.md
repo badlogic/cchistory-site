@@ -77,19 +77,19 @@ Build a minimal, dark-themed web app to view and compare Claude Code version pro
 ## Implementation Steps
 
 ### Phase 1: Frontend Foundation
-- [ ] Add Lit dependency to package.json
-- [ ] Create main Lit component with basic structure
-- [ ] Set up Tailwind dark theme styling
-- [ ] Create version selector dropdowns
-- [ ] Implement version sorting logic
+- [x] Add Lit dependency to package.json
+- [x] Create main Lit component with basic structure
+- [x] Set up Tailwind dark theme styling
+- [x] Create version selector dropdowns
+- [x] Implement version sorting logic
 
 ### Phase 2: Diff Integration
-- [ ] Add diff2html as ES module dependency
-- [ ] Create diff viewer component
-- [ ] Implement responsive view switching
-- [ ] Style diff2html with custom CSS
-- [ ] Add character-level highlighting
-- [ ] Use mock data for user testing
+- [x] Add diff2html as ES module dependency
+- [x] Create diff viewer component
+- [x] Implement responsive view switching
+- [x] Style diff2html with custom CSS
+- [x] Add character-level highlighting
+- [x] Use mock data for user testing
 
 ### Phase 3: Data Loading
 - [ ] Implement versions.json fetching
