@@ -1,4 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" fill="#4F46E5"/>
-  <text x="50" y="50" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="white" text-anchor="middle" dy=".35em">cchistory-site</text>
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dark background circle -->
+  <circle cx="16" cy="16" r="15" fill="#0a0a0a" stroke="#404040" stroke-width="2"/>
+  
+  <!-- Clock/history icon -->
+  <g fill="#888888">
+    <!-- Clock circle -->
+    <circle cx="16" cy="16" r="8" fill="none" stroke="#888888" stroke-width="1.5"/>
+    
+    <!-- Clock hands pointing to different times (showing change/history) -->
+    <line x1="16" y1="16" x2="16" y2="10" stroke="#888888" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="16" y1="16" x2="20" y2="16" stroke="#888888" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+    
+    <!-- History arrow -->
+    <path d="M 11 16 A 5 5 0 0 1 16 11" fill="none" stroke="#888888" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M 9 16 L 11 16 L 11 14" fill="none" stroke="#888888" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  </g>
 </svg>

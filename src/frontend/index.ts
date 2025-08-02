@@ -143,7 +143,7 @@ export class CCApp extends LitElement {
                   >
                     ${this.versions.map(
                        (v) => html`
-                      <option value=${v} ?selected=${v === this.fromVersion}>${v}</option>
+                      <option value=${v} ?selected=${v === this.fromVersion} ?disabled=${this.compareVersions(v, this.toVersion) > 0}>${v}</option>
                     `,
                     )}
                   </select>
@@ -160,7 +160,7 @@ export class CCApp extends LitElement {
                   >
                     ${this.versions.map(
                        (v) => html`
-                      <option value=${v} ?selected=${v === this.toVersion}>${v}</option>
+                      <option value=${v} ?selected=${v === this.toVersion} ?disabled=${this.compareVersions(this.fromVersion, v) > 0}>${v}</option>
                     `,
                     )}
                   </select>
@@ -202,7 +202,7 @@ export class CCApp extends LitElement {
                 >
                   ${this.versions.map(
                      (v) => html`
-                    <option value=${v} ?selected=${v === this.fromVersion}>${v}</option>
+                    <option value=${v} ?selected=${v === this.fromVersion} ?disabled=${this.compareVersions(v, this.toVersion) > 0}>${v}</option>
                   `,
                   )}
                 </select>
@@ -219,7 +219,7 @@ export class CCApp extends LitElement {
                 >
                   ${this.versions.map(
                      (v) => html`
-                    <option value=${v} ?selected=${v === this.toVersion}>${v}</option>
+                    <option value=${v} ?selected=${v === this.toVersion} ?disabled=${this.compareVersions(this.fromVersion, v) > 0}>${v}</option>
                   `,
                   )}
                 </select>
@@ -326,6 +326,11 @@ export class CCApp extends LitElement {
             overviewRulerLanes: 0,
             renderIndicators: false,
             folding: false,
+            wordWrap: "on",
+            wrappingStrategy: "advanced",
+            stickyScroll: {
+               enabled: false,
+            },
          });
 
          const originalModel = monaco.editor.createModel(originalContent, "markdown");
@@ -354,29 +359,13 @@ export class CCApp extends LitElement {
 
    private async handleFromVersionChange(e: Event) {
       const select = e.target as HTMLSelectElement;
-      const newFromVersion = select.value;
-
-      // Ensure from version is not newer than to version
-      if (this.compareVersions(newFromVersion, this.toVersion) > 0) {
-         select.value = this.fromVersion; // Reset to previous value
-         return;
-      }
-
-      this.fromVersion = newFromVersion;
+      this.fromVersion = select.value;
       await this.updateDiff();
    }
 
    private async handleToVersionChange(e: Event) {
       const select = e.target as HTMLSelectElement;
-      const newToVersion = select.value;
-
-      // Ensure to version is not older than from version
-      if (this.compareVersions(this.fromVersion, newToVersion) > 0) {
-         select.value = this.toVersion; // Reset to previous value
-         return;
-      }
-
-      this.toVersion = newToVersion;
+      this.toVersion = select.value;
       await this.updateDiff();
    }
 
