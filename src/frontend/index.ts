@@ -45,8 +45,28 @@ export class CCApp extends LitElement {
 
    async connectedCallback() {
       super.connectedCallback();
-      // Load mock data for now
-      await this.loadMockData();
+
+      // Parse URL parameters
+      const params = new URLSearchParams(window.location.search);
+      const fromParam = params.get("from");
+      const toParam = params.get("to");
+
+      // Load versions and initialize
+      await this.loadVersions();
+
+      // Set versions from URL or defaults
+      if (fromParam && this.versions.includes(fromParam)) {
+         this.fromVersion = fromParam;
+      }
+      if (toParam && this.versions.includes(toParam)) {
+         this.toVersion = toParam;
+      }
+
+      // Load initial diff if versions are set
+      if (this.fromVersion && this.toVersion) {
+         await this.updateComplete;
+         await this.initializeDiffEditor();
+      }
    }
 
    disconnectedCallback() {
@@ -55,20 +75,42 @@ export class CCApp extends LitElement {
       this.resizeObserver?.disconnect();
    }
 
-   private async loadMockData() {
+   private async loadVersions() {
       try {
-         // Mock versions for testing
-         this.versions = ["1.0.0", "1.0.1", "1.0.2", "1.0.67"];
-         this.toVersion = this.versions[this.versions.length - 1];
-         this.loading = false;
-
-         // Wait for next render cycle
-         await this.updateComplete;
-
-         // Initialize diff editor
-         if (this.fromVersion && this.toVersion) {
-            await this.initializeDiffEditor();
+         // Check for error first
+         const errorResponse = await fetch("/data/error.json");
+         if (errorResponse.ok) {
+            const errorData = await errorResponse.json();
+            this.error = `Update service error: ${errorData.error}`;
+            this.loading = false;
+            return;
          }
+
+         // Load versions
+         const versionsResponse = await fetch("/data/versions.json");
+         if (!versionsResponse.ok) {
+            // Check if data is still being populated
+            if (versionsResponse.status === 404) {
+               this.error = "Data is being populated, please check back in a few minutes...";
+            } else {
+               this.error = "Failed to load versions";
+            }
+            this.loading = false;
+            return;
+         }
+
+         const data = await versionsResponse.json();
+         this.versions = data.versions.map((v: { version: string }) => v.version);
+
+         // Set default versions if not already set
+         if (!this.fromVersion && this.versions.length > 0) {
+            this.fromVersion = this.versions[0];
+         }
+         if (!this.toVersion && this.versions.length > 0) {
+            this.toVersion = this.versions[this.versions.length - 1];
+         }
+
+         this.loading = false;
       } catch (err) {
          this.error = "Failed to load versions";
          this.loading = false;
@@ -223,6 +265,17 @@ export class CCApp extends LitElement {
                   ? html`
             <div class="text-center py-16">
               <div class="text-red-500">${this.error}</div>
+              ${
+                 this.error.includes("Update service")
+                    ? html`
+                <div class="mt-4">
+                  <a href="/data/logs.txt" target="_blank" class="text-purple-400 hover:text-purple-300 underline">
+                    View update logs
+                  </a>
+                </div>
+              `
+                    : ""
+              }
             </div>
           `
                   : html`
@@ -239,31 +292,53 @@ export class CCApp extends LitElement {
       const container = this.querySelector("#monaco-container") as HTMLElement;
       if (!container) return;
 
-      // Get mock content
-      const originalContent = this.getMockContent(this.fromVersion);
-      const modifiedContent = this.getMockContent(this.toVersion);
+      try {
+         // Show loading state
+         container.innerHTML =
+            '<div class="flex items-center justify-center h-full text-neutral-500">Loading diff...</div>';
 
-      // Create diff editor
-      this.diffEditor = monaco.editor.createDiffEditor(container, {
-         theme: "vs-dark",
-         readOnly: true,
-         renderSideBySide: window.innerWidth >= 768,
-         minimap: { enabled: false },
-         lineNumbers: "off",
-         scrollBeyondLastLine: false,
-         automaticLayout: true,
-         overviewRulerLanes: 0,
-         renderIndicators: false,
-         folding: false,
-      });
+         // Fetch both prompt files
+         const [fromResponse, toResponse] = await Promise.all([
+            fetch(`/data/prompts-${this.fromVersion}.md`),
+            fetch(`/data/prompts-${this.toVersion}.md`),
+         ]);
 
-      const originalModel = monaco.editor.createModel(originalContent, "markdown");
-      const modifiedModel = monaco.editor.createModel(modifiedContent, "markdown");
+         if (!fromResponse.ok || !toResponse.ok) {
+            this.error = "Failed to load prompt files";
+            return;
+         }
 
-      this.diffEditor.setModel({
-         original: originalModel,
-         modified: modifiedModel,
-      });
+         const originalContent = await fromResponse.text();
+         const modifiedContent = await toResponse.text();
+
+         // Clear loading state
+         container.innerHTML = "";
+
+         // Create diff editor
+         this.diffEditor = monaco.editor.createDiffEditor(container, {
+            theme: "vs-dark",
+            readOnly: true,
+            renderSideBySide: window.innerWidth >= 768,
+            minimap: { enabled: false },
+            lineNumbers: "off",
+            scrollBeyondLastLine: false,
+            automaticLayout: true,
+            overviewRulerLanes: 0,
+            renderIndicators: false,
+            folding: false,
+         });
+
+         const originalModel = monaco.editor.createModel(originalContent, "markdown");
+         const modifiedModel = monaco.editor.createModel(modifiedContent, "markdown");
+
+         this.diffEditor.setModel({
+            original: originalModel,
+            modified: modifiedModel,
+         });
+      } catch (err) {
+         this.error = "Failed to load diff";
+         console.error("Error loading diff:", err);
+      }
 
       // Handle resize
       this.resizeObserver = new ResizeObserver(() => {
@@ -275,51 +350,6 @@ export class CCApp extends LitElement {
          });
       });
       this.resizeObserver.observe(container);
-   }
-
-   private getMockContent(version: string): string {
-      if (version === "1.0.0") {
-         return `# Claude Code Version ${version}
-
-Release Date: 2025-05-22
-
-# User Message
-
-<system-reminder>
-As you answer the user's questions, you can use the following context:
-## important-instruction-reminders
-Do what has been asked; nothing more, nothing less.
-NEVER create files unless they're absolutely necessary for achieving your goal.
-</system-reminder>
-hey
-
-# System Prompt
-
-You are Claude Code, Anthropic's official CLI for Claude.`;
-      } else {
-         return `# Claude Code Version ${version}
-
-Release Date: 2025-08-01
-
-# User Message
-
-<system-reminder>
-As you answer the user's questions, you can use the following context:
-## important-instruction-reminders
-Do what has been asked; nothing more, nothing less.
-NEVER create files unless they're absolutely necessary for achieving your goal.
-ALWAYS prefer editing an existing file to creating a new one.
-NEVER proactively create documentation files (*.md) or README files.
-</system-reminder>
-hey
-
-# System Prompt
-
-You are Claude Code, Anthropic's official CLI for Claude.
-You are an interactive CLI tool that helps users with software engineering tasks.
-
-IMPORTANT: Assist with defensive security tasks only.`;
-      }
    }
 
    private async handleFromVersionChange(e: Event) {
@@ -353,23 +383,50 @@ IMPORTANT: Assist with defensive security tasks only.`;
    private async updateDiff() {
       if (!this.fromVersion || !this.toVersion || !this.diffEditor) return;
 
-      const originalContent = this.getMockContent(this.fromVersion);
-      const modifiedContent = this.getMockContent(this.toVersion);
+      // Update URL
+      this.updateURL();
 
-      // Get current model and dispose it properly
-      const currentModel = this.diffEditor.getModel();
-      if (currentModel) {
-         currentModel.original.dispose();
-         currentModel.modified.dispose();
+      try {
+         // Fetch both prompt files
+         const [fromResponse, toResponse] = await Promise.all([
+            fetch(`/data/prompts-${this.fromVersion}.md`),
+            fetch(`/data/prompts-${this.toVersion}.md`),
+         ]);
+
+         if (!fromResponse.ok || !toResponse.ok) {
+            this.error = "Failed to load prompt files";
+            return;
+         }
+
+         const originalContent = await fromResponse.text();
+         const modifiedContent = await toResponse.text();
+
+         // Get current model and dispose it properly
+         const currentModel = this.diffEditor.getModel();
+         if (currentModel) {
+            currentModel.original.dispose();
+            currentModel.modified.dispose();
+         }
+
+         const originalModel = monaco.editor.createModel(originalContent, "markdown");
+         const modifiedModel = monaco.editor.createModel(modifiedContent, "markdown");
+
+         this.diffEditor.setModel({
+            original: originalModel,
+            modified: modifiedModel,
+         });
+      } catch (err) {
+         this.error = "Failed to load diff";
+         console.error("Error updating diff:", err);
       }
+   }
 
-      const originalModel = monaco.editor.createModel(originalContent, "markdown");
-      const modifiedModel = monaco.editor.createModel(modifiedContent, "markdown");
-
-      this.diffEditor.setModel({
-         original: originalModel,
-         modified: modifiedModel,
-      });
+   private updateURL() {
+      const params = new URLSearchParams();
+      params.set("from", this.fromVersion);
+      params.set("to", this.toVersion);
+      const newURL = `${window.location.pathname}?${params.toString()}`;
+      window.history.replaceState({}, "", newURL);
    }
 
    // Semantic version comparison

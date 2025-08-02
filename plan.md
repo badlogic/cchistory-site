@@ -98,18 +98,18 @@ Build a minimal, dark-themed web app to view and compare Claude Code version pro
 - [x] Configure shared volume
 
 ### Phase 4: Data Loading
-- [ ] Implement versions.json fetching
-- [ ] Add error.json checking
-- [ ] Implement prompt file fetching
-- [ ] Add URL state management
-- [ ] Handle loading states
+- [x] Implement versions.json fetching
+- [x] Add error.json checking
+- [x] Implement prompt file fetching
+- [x] Add URL state management
+- [x] Handle loading states
 
 ### Phase 5: Infrastructure
-- [ ] Update docker-compose.yml for new service
-- [ ] Configure Caddy to serve /data route
-- [ ] Set up volume mounts
-- [ ] Test locally with user, who'll manage run.sh dev
-- [ ] Test full deployment flow
+- [x] Update docker-compose.yml for new service
+- [x] Configure Caddy to serve /data route
+- [x] Set up volume mounts
+- [x] Test locally with user, who'll manage run.sh dev
+- [x] Test full deployment flow
 
 ### Phase 6: Polish
 - [ ] Add loading animations
