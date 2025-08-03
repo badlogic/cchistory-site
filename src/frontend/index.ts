@@ -77,13 +77,17 @@ export class CCApp extends LitElement {
 
    private async loadVersions() {
       try {
-         // Check for error first
-         const errorResponse = await fetch("/data/error.json");
-         if (errorResponse.ok) {
-            const errorData = await errorResponse.json();
-            this.error = `Update service error: ${errorData.error}`;
-            this.loading = false;
-            return;
+         // Check for error first (only if it exists)
+         try {
+            const errorResponse = await fetch("/data/error.json");
+            if (errorResponse.ok) {
+               const errorData = await errorResponse.json();
+               this.error = `Update service error: ${errorData.error}`;
+               this.loading = false;
+               return;
+            }
+         } catch (e) {
+            // No error.json is fine, continue loading versions
          }
 
          // Load versions
