@@ -18,7 +18,7 @@ services:
       - claude-home:/root
     environment:
       - DATA_DIR=/data
-      - UPDATE_INTERVAL=1800000
+      - UPDATE_INTERVAL=43200000
       - ANTHROPIC_API_KEY=${CCHISTORY_ANTHROPIC_API_KEY:-}
 
 volumes:

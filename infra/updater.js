@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const DATA_DIR = process.env.DATA_DIR || '/data';
-const UPDATE_INTERVAL = parseInt(process.env.UPDATE_INTERVAL || '1800000'); // 30 minutes default
+const UPDATE_INTERVAL = parseInt(process.env.UPDATE_INTERVAL || '43200000'); // 12 hours default
 const LOG_FILE = path.join(DATA_DIR, 'logs.txt');
 
 // Ensure data directory exists

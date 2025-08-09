@@ -81,7 +81,7 @@ cchistory-site/
 - Handles live reload in development
 
 ### Update Service (Node.js)
-- Runs every 30 minutes
+- Runs every 12 hours
 - Fetches all Claude Code prompts from 1.0.0 to latest via [cchistory](https://github.com/badlogic/cchistory)
 - Generates `versions.json` metadata
 - Logs to `/data/logs.txt`

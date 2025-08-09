@@ -14,7 +14,7 @@ services:
       - ./updater.js:/app/updater.js:ro
       - ../data:/data
     environment:
-      - UPDATE_INTERVAL=1800000  # 30 minutes
+      - UPDATE_INTERVAL=43200000  # 12 hours
       - ANTHROPIC_API_KEY=${CCHISTORY_ANTHROPIC_API_KEY}
 
   livereload:
